@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sthom/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run sthom/react-test npm test -- --coverage
+
+after_sucess:
+  - docker build -t sthom/multi-client ./client
+  - docker build -t sthom/multi-nginx ./nginx
+  - docker build -t sthom/multi-server ./server
+  - docker build -t sthom/multi-worker ./worker
+
+  # log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push sthom/multi-client
+  - docker push sthom/multi-nginx
+  - docker push sthom/multi-server
+  - docker push sthom/multi-worker
+  
